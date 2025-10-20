@@ -1,0 +1,12 @@
+[package]
+name = "paint_spaceship"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Compila SDL2 embebido (sin depender del SO)
+sdl2 = { version = "0.36", features = ["bundled"] }
+image = "0.25"
+
+[profile.release]
+opt-level = 3

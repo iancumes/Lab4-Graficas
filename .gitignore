@@ -1,0 +1,13 @@
+# Compilación de Rust
+/target
+Cargo.lock
+
+# Capturas temporales (mantener spaceship_render.png)
+captura.png
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

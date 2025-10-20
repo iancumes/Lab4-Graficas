@@ -1,0 +1,162 @@
+# Low-poly "space fighter" (single object, multiple base-color materials)
+# Axes: X forward, Y right, Z up
+mtllib space_fighter_lite.mtl
+o SpaceFighterLite
+s off
+
+# ---------- Vertices ----------
+# Tail section (x = -2.0)
+v -2.0 -0.8 -0.5  # 1
+v -2.0  0.8 -0.5  # 2
+v -2.0  0.8  0.5  # 3
+v -2.0 -0.8  0.5  # 4
+
+# Mid section (x = 0.0) wider body
+v  0.0 -1.2 -0.6  # 5
+v  0.0  1.2 -0.6  # 6
+v  0.0  1.2  0.6  # 7
+v  0.0 -1.2  0.6  # 8
+
+# Front section / cockpit base (x = 1.2), narrower top
+v  1.2 -0.9 -0.5  # 9
+v  1.2  0.9 -0.5  # 10
+v  1.2  0.7  0.4  # 11
+v  1.2 -0.7  0.4  # 12
+
+# Nose tip
+v  2.4  0.0  0.0  # 13
+
+# Tail exhaust ring (x = -2.2)
+v -2.2 -0.6 -0.3  # 14
+v -2.2  0.6 -0.3  # 15
+v -2.2  0.6  0.3  # 16
+v -2.2 -0.6  0.3  # 17
+
+# Engine end cap (x = -2.4)
+v -2.4 -0.5 -0.2  # 18
+v -2.4  0.5 -0.2  # 19
+v -2.4  0.5  0.2  # 20
+v -2.4 -0.5  0.2  # 21
+
+# Dorsal fin (thin) around x in [-0.3, 0.3], y in [-0.12, 0.12]
+v -0.3 -0.12  0.6  # 22
+v  0.3 -0.12  0.6  # 23
+v -0.3  0.12  0.6  # 24
+v  0.3  0.12  0.6  # 25
+v  0.0 -0.12  1.2  # 26 tip L
+v  0.0  0.12  1.2  # 27 tip R
+
+# Twin rear pylons (left/right vertical stabilizers)
+v -0.9 -0.7  0.55  # 28 L base
+v -0.6 -0.5  0.95  # 29 L tip
+v -0.9  0.7  0.55  # 30 R base
+v -0.6  0.5  0.95  # 31 R tip
+
+# Side engine pods (boxes) attached to mid body
+# Left pod (y negative)
+v -0.2 -1.6 -0.35  # 32
+v  0.8 -1.6 -0.35  # 33
+v  0.8 -1.6  0.15  # 34
+v -0.2 -1.6  0.15  # 35
+v -0.2 -1.2 -0.35  # 36 (root to fuselage)
+v  0.8 -1.2 -0.35  # 37
+v  0.8 -1.2  0.15  # 38
+v -0.2 -1.2  0.15  # 39
+
+# Right pod (y positive)
+v -0.2  1.6 -0.35  # 40
+v  0.8  1.6 -0.35  # 41
+v  0.8  1.6  0.15  # 42
+v -0.2  1.6  0.15  # 43
+v -0.2  1.2 -0.35  # 44 (root to fuselage)
+v  0.8  1.2 -0.35  # 45
+v  0.8  1.2  0.15  # 46
+v -0.2  1.2  0.15  # 47
+
+# Canopy ridge (slightly raised glass area on top)
+v  0.7 -0.25 0.7  # 48
+v  1.1  0.25 0.72 # 49
+v  1.1 -0.25 0.72 # 50
+v  0.7  0.25 0.7  # 51
+
+# ---------- Faces ----------
+# Base hull materials
+usemtl HullGrey
+
+# Connect tail -> mid
+f 1 2 6 5
+f 4 3 7 8
+f 1 5 8 4
+f 2 6 7 3
+
+# Connect mid -> front (cockpit base)
+f 5 6 10 9
+f 8 7 11 12
+f 5 9 12 8
+f 6 10 11 7
+
+# Nose
+f 9 10 13
+f 10 11 13
+f 11 12 13
+f 12 9 13
+
+# Tail ring (tail -> ring)
+f 1 14 15 2
+f 4 17 16 3
+f 1 4 17 14
+f 2 15 16 3
+
+# Ring -> engine cap
+usemtl EngineDark
+f 14 18 19 15
+f 17 21 20 16
+f 14 17 21 18
+f 15 19 20 16
+# End cap
+f 18 21 20 19
+
+# Dorsal fin (two thin quads + two triangles)
+usemtl HullGrey
+f 22 23 26
+f 24 27 25
+f 22 24 27 26
+f 23 25 27 26
+
+# Twin rear pylons (simple triangles)
+f 28 29 22
+f 30 25 31
+
+# Side engine pods (left, six quads)
+f 32 33 34 35
+f 35 34 38 39
+f 32 36 37 33
+f 33 37 38 34
+f 32 35 39 36
+f 36 39 38 37
+
+# Side engine pods (right, six quads)
+f 40 41 42 43
+f 43 42 46 47
+f 40 44 45 41
+f 41 45 46 42
+f 40 43 47 44
+f 44 47 46 45
+
+# Canopy ridge (simple diamond on top)
+usemtl CanopyBlue
+f 48 50 49 51
+
+# Small bevel between canopy and front top
+usemtl HullGrey
+f 12 11 49 48
+f 11 7 25 49
+f 8 12 48 22
+
+# Close small seams between dorsal fin base and body
+f 22 48 51 24
+f 25 23 50 49
+
+# Optional: reinforce bottom chamfers near nose
+f 5 9 13 6
+
