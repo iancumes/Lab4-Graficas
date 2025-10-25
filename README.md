@@ -40,12 +40,14 @@ El proyecto está implementado en **Rust** con las siguientes características:
 2. **Transformación a pantalla**: Función `transformar_a_pantalla()`
    - Calcula el centroide del modelo
    - Calcula el AABB (Axis-Aligned Bounding Box)
-   - **Proyección isométrica 3D** con rotaciones:
-     - Rotación de 30° alrededor del eje Y (horizontal)
-     - Rotación de 20° alrededor del eje X (vertical)
+   - **Rotación 3D parametrizable**:
+     - Rotación variable alrededor del eje Y (horizontal)
+     - Rotación variable alrededor del eje X (vertical)
+     - Rotación variable alrededor del eje Z (plano)
+   - **Proyección ortográfica** después de aplicar rotaciones
    - Escala el modelo al 70% de la dimensión menor de la ventana
    - Centra el modelo en pantalla
-   - Permite ver la nave espacial desde un ángulo 3/4 que muestra su forma
+   - Permite visualizar la nave desde cualquier ángulo en tiempo real
 
 3. **Rasterización**: Función `dibujar_triangulo()`
    - Usa coordenadas baricéntricas para determinar si un píxel está dentro del triángulo
@@ -139,17 +141,38 @@ cargo run --release
 ### Opción 2: Ejecutable directo
 
 ```bash
-# En Linux
-LD_LIBRARY_PATH=./target/release:$LD_LIBRARY_PATH ./target/release/paint_spaceship
+# Usando el script de ejecución (recomendado)
+./run.sh
 
 # O especificar otro modelo OBJ
-LD_LIBRARY_PATH=./target/release:$LD_LIBRARY_PATH ./target/release/paint_spaceship assets/spaceship.obj
+./run.sh assets/spaceship.obj
+
+# En Linux (sin el script)
+LD_LIBRARY_PATH=./target/debug:$LD_LIBRARY_PATH ./target/release/paint_spaceship
 ```
 
 ## Controles
 
+### Rotación del Modelo
+- **Flechas Izquierda/Derecha**: Rotar en eje Y (horizontal)
+- **Flechas Arriba/Abajo**: Rotar en eje X (vertical)
+- **Q/E**: Rotar en eje Z (plano)
+- **ESPACIO**: Activar/Desactivar rotación automática
+- **R**: Resetear rotación a posición inicial
+
+### Otras Funciones
 - **ESC**: Salir del programa
 - **S**: Guardar captura de pantalla como `captura.png`
+
+## Características de Rotación
+
+El programa ahora incluye **rotación interactiva en tiempo real**:
+
+1. **Rotación manual**: Usa las teclas de flechas y Q/E para rotar el modelo en los 3 ejes
+2. **Rotación automática**: Presiona ESPACIO para activar una rotación continua automática
+3. **Reset**: Presiona R para volver a la vista inicial (30° en Y, 20° en X)
+4. **Rotación suave**: Los ángulos se incrementan en 5 grados por pulsación de tecla
+5. **Transformación en tiempo real**: El modelo se recalcula y redibuja en cada frame
 
 ## Archivos del Proyecto
 
@@ -157,6 +180,7 @@ LD_LIBRARY_PATH=./target/release:$LD_LIBRARY_PATH ./target/release/paint_spacesh
 paint_spaceship/
 ├── Cargo.toml              # Configuración del proyecto Rust
 ├── README.md               # Este archivo
+├── run.sh                  # Script de ejecución (facilita el uso de SDL2)
 ├── spaceship_render.png    # Captura del modelo renderizado
 ├── assets/
 │   └── spaceship.obj       # Modelo 3D del spaceship

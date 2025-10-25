@@ -152,8 +152,8 @@ fn cargar_obj<P: AsRef<Path>>(path: P) -> Result<(Vec<Vec3>, Vec<Cara>), String>
 }
 
 /// Centra, escala y proyecta ortográficamente a pantalla
-/// Usa proyección isométrica para ver el modelo en 3D (mejor vista de la nave)
-fn transformar_a_pantalla(verts: &[Vec3], ancho: i32, alto: i32) -> Vec<Vec2i> {
+/// Usa rotación variable para ver el modelo en 3D
+fn transformar_a_pantalla(verts: &[Vec3], ancho: i32, alto: i32, rotacion_y: f32, rotacion_x: f32, rotacion_z: f32) -> Vec<Vec2i> {
     // Centroide
     let mut cx = 0.0f32;
     let mut cy = 0.0f32;
@@ -197,26 +197,27 @@ fn transformar_a_pantalla(verts: &[Vec3], ancho: i32, alto: i32) -> Vec<Vec2i> {
         let y = v.y - cy;
         let z = v.z - cz;
         
-        // Proyección isométrica (rotación para ver la nave desde un ángulo 3/4)
-        // Rotar 30° alrededor de Y, luego 30° alrededor de X
-        let angle_y = 30.0_f32.to_radians();
-        let angle_x = 20.0_f32.to_radians();
-        
-        // Rotación Y (horizontal)
-        let cos_y = angle_y.cos();
-        let sin_y = angle_y.sin();
+        // Rotación Y (horizontal - izquierda/derecha)
+        let cos_y = rotacion_y.cos();
+        let sin_y = rotacion_y.sin();
         let x1 = x * cos_y + z * sin_y;
         let z1 = -x * sin_y + z * cos_y;
         
-        // Rotación X (vertical)
-        let cos_x = angle_x.cos();
-        let sin_x = angle_x.sin();
+        // Rotación X (vertical - arriba/abajo)
+        let cos_x = rotacion_x.cos();
+        let sin_x = rotacion_x.sin();
         let y2 = y * cos_x - z1 * sin_x;
-        let _z2 = y * sin_x + z1 * cos_x;
+        let z2 = y * sin_x + z1 * cos_x;
         
-        // Proyectar a 2D (ignorar z2 para ortográfica)
-        let screen_x = x1 * escala + ox;
-        let screen_y = y2 * escala + oy;
+        // Rotación Z (plano - rotación en 2D)
+        let cos_z = rotacion_z.cos();
+        let sin_z = rotacion_z.sin();
+        let x3 = x1 * cos_z - y2 * sin_z;
+        let y3 = x1 * sin_z + y2 * cos_z;
+        
+        // Proyectar a 2D (ignorar z para ortográfica)
+        let screen_x = x3 * escala + ox;
+        let screen_y = y3 * escala + oy;
         
         out.push(Vec2i {
             x: screen_x.round() as i32,
@@ -353,8 +354,12 @@ fn main() -> Result<(), String> {
         caras.len()
     );
 
-    // Transformar a pantalla (centrado + escala razonable)
-    let verts2d = transformar_a_pantalla(&vertices, ANCHO as i32, ALTO as i32);
+    // Variables de rotación
+    let mut rotacion_x = 20.0_f32.to_radians(); // Rotación inicial en X
+    let mut rotacion_y = 30.0_f32.to_radians(); // Rotación inicial en Y
+    let mut rotacion_z = 0.0_f32;                // Rotación inicial en Z
+    let velocidad_rotacion = 5.0_f32.to_radians(); // 5 grados por tecla presionada
+    let mut auto_rotacion = false;               // Rotación automática
 
     // SDL2
     let sdl = sdl2::init().map_err(|e| e.to_string())?;
@@ -383,10 +388,19 @@ fn main() -> Result<(), String> {
     let color_fondo = Color::rgba(10, 10, 40, 255);           // Azul oscuro espacial
 
     // Renderizar una vez y guardar captura automáticamente
+    let verts2d_inicial = transformar_a_pantalla(&vertices, ANCHO as i32, ALTO as i32, rotacion_y, rotacion_x, rotacion_z);
     fb.limpiar(color_fondo);
-    render_modelo(&mut fb, &verts2d, &caras, color_modelo, color_wireframe, false, true);
+    render_modelo(&mut fb, &verts2d_inicial, &caras, color_modelo, color_wireframe, false, true);
     fb.guardar_png("spaceship_render.png")?;
     println!("✓ Captura inicial guardada en spaceship_render.png");
+    println!("\n=== CONTROLES ===");
+    println!("Flechas Izquierda/Derecha: Rotar en eje Y (horizontal)");
+    println!("Flechas Arriba/Abajo: Rotar en eje X (vertical)");
+    println!("Q/E: Rotar en eje Z (plano)");
+    println!("ESPACIO: Activar/Desactivar rotación automática");
+    println!("R: Resetear rotación a posición inicial");
+    println!("S: Guardar captura de pantalla");
+    println!("ESC: Salir\n");
 
     let mut eventos = sdl.event_pump().map_err(|e| e.to_string())?;
     'mainloop: loop {
@@ -404,9 +418,69 @@ fn main() -> Result<(), String> {
                     fb.guardar_png("captura.png")?;
                     println!("Captura guardada en captura.png");
                 }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Left),
+                    ..
+                } => {
+                    rotacion_y -= velocidad_rotacion;
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Right),
+                    ..
+                } => {
+                    rotacion_y += velocidad_rotacion;
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Up),
+                    ..
+                } => {
+                    rotacion_x -= velocidad_rotacion;
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Down),
+                    ..
+                } => {
+                    rotacion_x += velocidad_rotacion;
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Q),
+                    ..
+                } => {
+                    rotacion_z -= velocidad_rotacion;
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::E),
+                    ..
+                } => {
+                    rotacion_z += velocidad_rotacion;
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Space),
+                    ..
+                } => {
+                    auto_rotacion = !auto_rotacion;
+                    println!("Rotación automática: {}", if auto_rotacion { "ON" } else { "OFF" });
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::R),
+                    ..
+                } => {
+                    rotacion_x = 20.0_f32.to_radians();
+                    rotacion_y = 30.0_f32.to_radians();
+                    rotacion_z = 0.0_f32;
+                    println!("Rotación reseteada a posición inicial");
+                }
                 _ => {}
             }
         }
+
+        // Rotación automática
+        if auto_rotacion {
+            rotacion_y += velocidad_rotacion * 0.3;
+        }
+
+        // Transformar vértices con la rotación actual
+        let verts2d = transformar_a_pantalla(&vertices, ANCHO as i32, ALTO as i32, rotacion_y, rotacion_x, rotacion_z);
 
         fb.limpiar(color_fondo);
         render_modelo(&mut fb, &verts2d, &caras, color_modelo, color_wireframe, false, true);
